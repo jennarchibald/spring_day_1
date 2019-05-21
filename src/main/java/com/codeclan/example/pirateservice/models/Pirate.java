@@ -1,6 +1,13 @@
 package com.codeclan.example.pirateservice.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.Cascade;
+
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hibernate.annotations.CascadeType.SAVE_UPDATE;
 
 @Entity
 @Table(name="pirates")
@@ -20,14 +27,47 @@ public class Pirate {
     @Column(name="age")
     private int age;
 
-    public Pirate(String firstName, String lastName, int age) {
+    @ManyToOne // NEW
+    @JoinColumn(name="ship_id", nullable=false) // NEW
+    private Ship ship; // NEW
+
+    @JsonIgnore
+    @ManyToMany
+    @Cascade(value = SAVE_UPDATE)
+    @JoinTable(
+            name = "pirates_raids",
+            joinColumns = { @JoinColumn(
+                    name = "pirate_id",
+                    nullable = false,
+                    updatable = false)
+            },
+            inverseJoinColumns = { @JoinColumn(
+                    name = "raid_id",
+                    nullable = false,
+                    updatable = false)
+            }
+    )
+
+    private List<Raid> raids;
+
+    public Pirate(String firstName, String lastName, int age, Ship ship) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.age = age;
+        this.ship = ship;
+        this.raids = new ArrayList<>();
     }
 
     public Pirate(){
 
+    }
+
+    public Ship getShip() {
+        return ship;
+    }
+
+    public void setShip(Ship ship) {
+        this.ship = ship;
     }
 
     public Long getId() {
@@ -60,5 +100,9 @@ public class Pirate {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public void addRaid(Raid raid){
+        raids.add(raid);
     }
 }
